@@ -128,10 +128,12 @@ def run_dns_server():
                     rdata = SOA(dns.rdataclass.IN, dns.rdatatype.SOA, mname, rname, serial, refresh, retry, expire, minimum) # follow format from previous line
                     rdata_list.append(rdata)
                 else:
-                    if isinstance(answer_data, str):
-                        rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
-                    else:
-                        rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data]
+                    if qtype == dns.rdatatype.TXT:
+                        rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.TXT, '"' + data + '"') for data in answer_data]
+                elif isinstance(answer_data, str):
+                    rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
+                else:
+                    rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data] for data in answer_data]
                 for rdata in rdata_list:
                     response.answer.append(dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype))
                     response.answer[-1].add(rdata)
