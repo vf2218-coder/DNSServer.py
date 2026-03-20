@@ -16,6 +16,7 @@ import hashlib
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from dns.rdtypes.ANY.TXT import TXT
 import base64
 import ast
 
@@ -102,7 +103,7 @@ def run_dns_server():
     while True:
         try:
             # Wait for incoming DNS requests
-            data, addr = server_socket.recvfrom(1024)
+            data, addr = server_socket.recvfrom(4096)
             # Parse the request using the `dns.message.from_wire` method
             request = dns.message.from_wire(data)
             # Create a response message using the `dns.message.make_response` method
@@ -130,7 +131,7 @@ def run_dns_server():
                 elif qtype == dns.rdatatype.TXT:
                     for txt_data in answer_data:
                         rdata_list.append(
-                            dns.rdtypes.ANY.TXT.TXT(
+                            TXT(
                                 dns.rdataclass.IN,
                                 dns.rdatatype.TXT,
                                 [txt_data.encode('utf-8')]
