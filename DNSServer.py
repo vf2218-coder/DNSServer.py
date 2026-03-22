@@ -16,7 +16,6 @@ import hashlib
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from dns.rdtypes.ANY.TXT import TXT
 import base64
 import ast
 
@@ -103,7 +102,7 @@ def run_dns_server():
     while True:
         try:
             # Wait for incoming DNS requests
-            data, addr = server_socket.recvfrom(4096)
+            data, addr = server_socket.recvfrom(1024)
             # Parse the request using the `dns.message.from_wire` method
             request = dns.message.from_wire(data)
             # Create a response message using the `dns.message.make_response` method
@@ -128,21 +127,11 @@ def run_dns_server():
                     mname, rname, serial, refresh, retry, expire, minimum = answer_data # What is the record format? See dns_records dictionary. Assume we handle @, Class, TTL elsewhere. Do some research on SOA Records
                     rdata = SOA(dns.rdataclass.IN, dns.rdatatype.SOA, mname, rname, serial, refresh, retry, expire, minimum) # follow format from previous line
                     rdata_list.append(rdata)
-                elif qtype == dns.rdatatype.TXT:
-                    for txt_data in answer_data:
-                        rdata_list.append(
-                            TXT(
-                                dns.rdataclass.IN,
-                                dns.rdatatype.TXT,
-                                [txt_data.encode('utf-8')]
-                            )
-                        )
                 else:
                     if isinstance(answer_data, str):
                         rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, answer_data)]
                     else:
                         rdata_list = [dns.rdata.from_text(dns.rdataclass.IN, qtype, data) for data in answer_data]
-                    
                 for rdata in rdata_list:
                     response.answer.append(dns.rrset.RRset(question.name, dns.rdataclass.IN, qtype))
                     response.answer[-1].add(rdata)
